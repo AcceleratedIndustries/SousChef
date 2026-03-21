@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ plan.name }}</title>
+  <style>
+    body { font-family: Georgia, serif; max-width: 800px; margin: 0 auto; padding: 2rem; color: #333; }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .date-range { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
+    .day { margin-bottom: 2rem; }
+    .day h2 { font-size: 1.2rem; background: #f0f4ff; padding: 0.5rem 0.8rem; border-radius: 4px; margin-bottom: 0.8rem; }
+    .meal-item { display: flex; align-items: baseline; padding: 0.4rem 0; border-bottom: 1px solid #eee; }
+    .meal-category { font-weight: bold; text-transform: capitalize; min-width: 90px; color: #555; font-size: 0.9rem; }
+    .recipe-title { flex: 1; }
+    .servings { color: #888; font-size: 0.85rem; margin-left: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>{{ plan.name }}</h1>
+
+  {% if plan.start_date or plan.end_date %}
+  <p class="date-range">
+    {% if plan.start_date and plan.end_date %}
+    {{ plan.start_date }} &ndash; {{ plan.end_date }}
+    {% elif plan.start_date %}
+    From {{ plan.start_date }}
+    {% elif plan.end_date %}
+    Until {{ plan.end_date }}
+    {% endif %}
+  </p>
+  {% endif %}
+
+  {% if items_by_date %}
+    {% for date, items in items_by_date.items() %}
+    <div class="day">
+      <h2>{{ date }}</h2>
+      {% for item in items %}
+      <div class="meal-item">
+        <span class="meal-category">{{ item.meal_category }}</span>
+        <span class="recipe-title">{{ item.recipe_title }}</span>
+        {% if item.servings_override %}
+        <span class="servings">{{ item.servings_override }} servings</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  {% else %}
+  <p>No meals planned yet.</p>
+  {% endif %}
+</body>
+</html>

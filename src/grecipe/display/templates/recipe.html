@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ recipe.title }}</title>
+  <style>
+    body { font-family: Georgia, serif; max-width: 800px; margin: 0 auto; padding: 2rem; color: #333; }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .meta { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
+    .meta span { margin-right: 1.5rem; }
+    .rating { color: #f5a623; }
+    .tags { margin-bottom: 1.5rem; }
+    .tag { display: inline-block; background: #e8f4e8; border-radius: 3px; padding: 0.2rem 0.6rem; margin-right: 0.4rem; font-size: 0.85rem; }
+    .description { font-style: italic; margin-bottom: 1.5rem; color: #555; }
+    img { max-width: 100%; border-radius: 6px; margin-bottom: 1.5rem; }
+    h2 { font-size: 1.3rem; border-bottom: 1px solid #ddd; padding-bottom: 0.3rem; margin-top: 2rem; }
+    ul, ol { padding-left: 1.5rem; line-height: 1.8; }
+    .notes { background: #fffbea; border-left: 4px solid #f5a623; padding: 1rem; margin-top: 1.5rem; border-radius: 0 4px 4px 0; }
+  </style>
+</head>
+<body>
+  <h1>{{ recipe.title }}</h1>
+
+  {% if recipe.description %}
+  <p class="description">{{ recipe.description }}</p>
+  {% endif %}
+
+  {% if recipe.image_path %}
+  <img src="{{ recipe.image_path }}" alt="{{ recipe.title }}">
+  {% endif %}
+
+  <div class="meta">
+    {% if recipe.servings %}
+    <span>Servings: {{ recipe.servings }}</span>
+    {% endif %}
+    {% if recipe.prep_time_minutes %}
+    <span>Prep: {{ recipe.prep_time_minutes }} min</span>
+    {% endif %}
+    {% if recipe.cook_time_minutes %}
+    <span>Cook: {{ recipe.cook_time_minutes }} min</span>
+    {% endif %}
+    {% if recipe.rating %}
+    <span class="rating">
+      {% for i in range(recipe.rating) %}&#9733;{% endfor %}{% for i in range(5 - recipe.rating) %}&#9734;{% endfor %}
+    </span>
+    {% endif %}
+  </div>
+
+  {% if tags %}
+  <div class="tags">
+    {% for tag in tags %}
+    <span class="tag">{{ tag }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if ingredients %}
+  <h2>Ingredients</h2>
+  <ul>
+    {% for ingredient in ingredients %}
+    <li>
+      {% if ingredient.quantity %}{{ ingredient.quantity }}{% endif %}
+      {% if ingredient.unit %} {{ ingredient.unit }}{% endif %}
+      {% if ingredient.name %} {{ ingredient.name }}{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% if instructions %}
+  <h2>Instructions</h2>
+  <ol>
+    {% for step in instructions %}
+    <li>{{ step }}</li>
+    {% endfor %}
+  </ol>
+  {% endif %}
+
+  {% if recipe.notes %}
+  <div class="notes">
+    <strong>Notes:</strong> {{ recipe.notes }}
+  </div>
+  {% endif %}
+</body>
+</html>
