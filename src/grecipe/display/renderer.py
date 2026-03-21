@@ -38,6 +38,7 @@ def render_recipe(conn, recipe_id, output_dir):
     Returns the Path to the written file.
     """
     output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
     recipe = get_recipe(conn, recipe_id)
     if recipe is None:
         raise ValueError(f"Recipe {recipe_id!r} not found")
@@ -67,6 +68,7 @@ def render_plan(conn, plan_id, output_dir):
     Returns the Path to the written file.
     """
     output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
     plan = get_plan(conn, plan_id)
     if plan is None:
         raise ValueError(f"Plan {plan_id!r} not found")
@@ -100,6 +102,7 @@ def render_grocery(conn, list_id, output_dir):
     Returns the Path to the written file.
     """
     output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
     grocery_list = get_list(conn, list_id)
     if grocery_list is None:
         raise ValueError(f"Grocery list {list_id!r} not found")
