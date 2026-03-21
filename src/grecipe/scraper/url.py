@@ -7,6 +7,10 @@ from typing import Optional
 import httpx
 from recipe_scrapers import scrape_html
 
+_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko)",
+}
+
 
 def scrape_recipe(url: str, html: str) -> dict:
     """Scrape a recipe from HTML content.
@@ -68,7 +72,7 @@ def download_image(url: str, images_dir: Path) -> Optional[Path]:
         Path to the saved image on success, None on any exception.
     """
     try:
-        response = httpx.get(url, timeout=30, follow_redirects=True)
+        response = httpx.get(url, timeout=30, follow_redirects=True, headers=_HEADERS)
         content_type = response.headers.get("content-type", "")
 
         if "png" in content_type:
@@ -98,7 +102,7 @@ def fetch_and_scrape(url: str, images_dir: Path) -> dict:
     Returns:
         Dict with all scraped recipe fields plus image_path (Path or None).
     """
-    response = httpx.get(url, timeout=30, follow_redirects=True)
+    response = httpx.get(url, timeout=30, follow_redirects=True, headers=_HEADERS)
     html = response.text
 
     result = scrape_recipe(url, html)
