@@ -2,7 +2,7 @@
 import json
 import pytest
 
-from grecipe.models.grocery import (
+from souschef.models.grocery import (
     create_list,
     get_list,
     delete_list,
@@ -13,8 +13,8 @@ from grecipe.models.grocery import (
     export_list,
     generate_from_plan,
 )
-from grecipe.models.recipe import add_recipe
-from grecipe.models.plan import create_plan, add_plan_item
+from souschef.models.recipe import add_recipe
+from souschef.models.plan import create_plan, add_plan_item
 
 
 def test_create_standalone_list(db):

@@ -5,14 +5,14 @@ import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
 
-_DEFAULT_DB_DIR = Path.home() / ".grecipe"
-_DB_NAME = "grecipe.db"
+_DEFAULT_DB_DIR = Path.home() / ".souschef"
+_DB_NAME = "souschef.db"
 
 
 def get_db_path(db_dir: Path | None = None) -> Path:
     """Return the path to the database file."""
     if db_dir is None:
-        env_dir = os.environ.get("GRECIPE_DB_DIR")
+        env_dir = os.environ.get("SOUSCHEF_DB_DIR")
         directory = Path(env_dir) if env_dir else _DEFAULT_DB_DIR
     else:
         directory = db_dir

@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "grecipe"
+name = "souschef"
 version = "0.1.0"
 description = "Recipe management CLI for Claude Cowork"
 requires-python = ">=3.11"
@@ -22,7 +22,7 @@ dev = [
 ]
 
 [project.scripts]
-grecipe = "grecipe.cli.main:app"
+souschef = "souschef.cli.main:app"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/grecipe"]
+packages = ["src/souschef"]

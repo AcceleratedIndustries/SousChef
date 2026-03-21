@@ -2,13 +2,13 @@
 import json
 import pytest
 from typer.testing import CliRunner
-from grecipe.cli.main import app
+from souschef.cli.main import app
 
 runner = CliRunner()
 
 
 def test_db_init_then_recipe_add(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     runner.invoke(app, ["db", "init"])
     recipe_data = json.dumps({"title": "Pasta Carbonara", "description": "Classic Italian"})
     result = runner.invoke(app, ["recipe", "add", "--json", recipe_data])
@@ -19,7 +19,7 @@ def test_db_init_then_recipe_add(tmp_path, monkeypatch):
 
 
 def test_recipe_view(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     runner.invoke(app, ["db", "init"])
     recipe_data = json.dumps({"title": "Tacos"})
     runner.invoke(app, ["recipe", "add", "--json", recipe_data])
@@ -30,7 +30,7 @@ def test_recipe_view(tmp_path, monkeypatch):
 
 
 def test_recipe_list(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     runner.invoke(app, ["db", "init"])
     runner.invoke(app, ["recipe", "add", "--json", json.dumps({"title": "Recipe A"})])
     runner.invoke(app, ["recipe", "add", "--json", json.dumps({"title": "Recipe B"})])
@@ -41,7 +41,7 @@ def test_recipe_list(tmp_path, monkeypatch):
 
 
 def test_recipe_edit(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     runner.invoke(app, ["db", "init"])
     runner.invoke(app, ["recipe", "add", "--json", json.dumps({"title": "Original Title"})])
     edit_data = json.dumps({"title": "Updated Title"})
@@ -54,7 +54,7 @@ def test_recipe_edit(tmp_path, monkeypatch):
 
 
 def test_recipe_delete(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     runner.invoke(app, ["db", "init"])
     runner.invoke(app, ["recipe", "add", "--json", json.dumps({"title": "To Be Deleted"})])
     delete_result = runner.invoke(app, ["recipe", "delete", "1"])

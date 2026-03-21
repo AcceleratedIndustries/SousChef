@@ -2,13 +2,13 @@
 import json
 import pytest
 from typer.testing import CliRunner
-from grecipe.cli.main import app
+from souschef.cli.main import app
 
 runner = CliRunner()
 
 
 def test_tag_add_and_list(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     runner.invoke(app, ["db", "init"])
     runner.invoke(app, ["recipe", "add", "--json", json.dumps({"title": "Tagged Recipe"})])
     add_result = runner.invoke(app, ["tag", "add", "1", "vegan", "gluten-free"])

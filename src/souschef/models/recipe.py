@@ -2,7 +2,7 @@
 import json
 from datetime import datetime, timezone
 
-from grecipe.db.connection import dict_rows
+from souschef.db.connection import dict_rows
 
 EDITABLE_FIELDS = {
     "title",

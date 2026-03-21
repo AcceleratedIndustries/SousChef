@@ -2,13 +2,13 @@
 import json
 import pytest
 from typer.testing import CliRunner
-from grecipe.cli.main import app
+from souschef.cli.main import app
 
 runner = CliRunner()
 
 
 def test_grocery_create_standalone(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     runner.invoke(app, ["db", "init"])
     result = runner.invoke(app, ["grocery", "create", "--name", "Weekly Shop"])
     assert result.exit_code == 0, result.output
@@ -18,7 +18,7 @@ def test_grocery_create_standalone(tmp_path, monkeypatch):
 
 
 def test_grocery_add_item_and_view(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     runner.invoke(app, ["db", "init"])
     runner.invoke(app, ["grocery", "create", "--name", "My List"])
     add_result = runner.invoke(
@@ -43,7 +43,7 @@ def test_grocery_add_item_and_view(tmp_path, monkeypatch):
 
 
 def test_grocery_delete(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     runner.invoke(app, ["db", "init"])
     runner.invoke(app, ["grocery", "create", "--name", "To Delete"])
     result = runner.invoke(app, ["grocery", "delete", "1"])
@@ -54,7 +54,7 @@ def test_grocery_delete(tmp_path, monkeypatch):
 
 
 def test_grocery_list(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     runner.invoke(app, ["db", "init"])
     runner.invoke(app, ["grocery", "create", "--name", "List A"])
     runner.invoke(app, ["grocery", "create", "--name", "List B"])

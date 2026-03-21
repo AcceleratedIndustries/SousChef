@@ -2,10 +2,10 @@
 import json
 import pytest
 
-from grecipe.models.recipe import add_recipe
-from grecipe.models.plan import create_plan, add_plan_item
-from grecipe.models.grocery import create_list, add_item
-from grecipe.display.renderer import render_recipe, render_plan, render_grocery
+from souschef.models.recipe import add_recipe
+from souschef.models.plan import create_plan, add_plan_item
+from souschef.models.grocery import create_list, add_item
+from souschef.display.renderer import render_recipe, render_plan, render_grocery
 
 
 def test_render_recipe(db, tmp_path):

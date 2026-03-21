@@ -5,10 +5,10 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from grecipe.models.recipe import get_recipe
-from grecipe.models.tag import get_tags_for_recipe
-from grecipe.models.plan import get_plan, get_plan_items
-from grecipe.models.grocery import get_list, get_items
+from souschef.models.recipe import get_recipe
+from souschef.models.tag import get_tags_for_recipe
+from souschef.models.plan import get_plan, get_plan_items
+from souschef.models.grocery import get_list, get_items
 
 _TEMPLATE_DIR = Path(__file__).parent / "templates"
 

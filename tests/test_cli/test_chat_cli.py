@@ -2,13 +2,13 @@
 import json
 import pytest
 from typer.testing import CliRunner
-from grecipe.cli.main import app
+from souschef.cli.main import app
 
 runner = CliRunner()
 
 
 def test_chat_log_and_search(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     runner.invoke(app, ["db", "init"])
     log_result = runner.invoke(
         app,

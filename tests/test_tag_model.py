@@ -1,10 +1,10 @@
 """Tests for tag, dietary, and meal category models."""
 import pytest
 
-from grecipe.models.recipe import add_recipe
-from grecipe.models.tag import add_tags, remove_tag, get_tags_for_recipe, list_tags
-from grecipe.models.dietary import set_dietary, get_dietary
-from grecipe.models.meal_category import set_categories, get_categories
+from souschef.models.recipe import add_recipe
+from souschef.models.tag import add_tags, remove_tag, get_tags_for_recipe, list_tags
+from souschef.models.dietary import set_dietary, get_dietary
+from souschef.models.meal_category import set_categories, get_categories
 
 
 SAMPLE_RECIPE = {"title": "Test Recipe"}

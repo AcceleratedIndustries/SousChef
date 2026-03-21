@@ -4,8 +4,8 @@ from typing import Optional
 
 import typer
 
-from grecipe.db.connection import get_db
-from grecipe.models.chat import log_chat, search_chat
+from souschef.db.connection import get_db
+from souschef.models.chat import log_chat, search_chat
 
 app = typer.Typer(help="Chat log commands.")
 

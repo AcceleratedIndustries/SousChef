@@ -2,13 +2,13 @@
 import json
 import pytest
 from typer.testing import CliRunner
-from grecipe.cli.main import app
+from souschef.cli.main import app
 
 runner = CliRunner()
 
 
 def test_db_init_and_stats(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     init_result = runner.invoke(app, ["db", "init"])
     assert init_result.exit_code == 0, init_result.output
     init_data = json.loads(init_result.output)

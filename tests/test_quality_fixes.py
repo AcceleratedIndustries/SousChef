@@ -3,7 +3,7 @@ delete-nonexistent, rate/favorite-nonexistent."""
 import sqlite3
 import pytest
 
-from grecipe.models.recipe import (
+from souschef.models.recipe import (
     add_recipe,
     get_recipe,
     list_recipes,
@@ -12,13 +12,13 @@ from grecipe.models.recipe import (
     rate_recipe,
     favorite_recipe,
 )
-from grecipe.models.plan import (
+from souschef.models.plan import (
     create_plan,
     delete_plan,
     remove_plan_item,
     add_plan_item,
 )
-from grecipe.models.grocery import (
+from souschef.models.grocery import (
     create_list,
     delete_list,
 )

@@ -1,7 +1,7 @@
 """Tests for the recipe history model."""
 import pytest
-from grecipe.models.recipe import add_recipe, get_recipe
-from grecipe.models.history import record_change, get_history
+from souschef.models.recipe import add_recipe, get_recipe
+from souschef.models.history import record_change, get_history
 
 
 def test_record_history_on_edit(db):

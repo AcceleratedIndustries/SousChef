@@ -5,14 +5,14 @@ import json
 
 def test_full_workflow(db, tmp_path):
     """Simulate: add recipes → tag → plan meals → generate grocery list → render."""
-    from grecipe.models.recipe import add_recipe, get_recipe
-    from grecipe.models.tag import add_tags
-    from grecipe.models.meal_category import set_categories
-    from grecipe.models.dietary import set_dietary
-    from grecipe.models.plan import create_plan, add_plan_item, get_plan_items
-    from grecipe.models.grocery import generate_from_plan, get_items, export_list
-    from grecipe.models.chat import log_chat, search_chat
-    from grecipe.display.renderer import render_recipe, render_plan
+    from souschef.models.recipe import add_recipe, get_recipe
+    from souschef.models.tag import add_tags
+    from souschef.models.meal_category import set_categories
+    from souschef.models.dietary import set_dietary
+    from souschef.models.plan import create_plan, add_plan_item, get_plan_items
+    from souschef.models.grocery import generate_from_plan, get_items, export_list
+    from souschef.models.chat import log_chat, search_chat
+    from souschef.display.renderer import render_recipe, render_plan
 
     # 1. Add recipes
     r1 = add_recipe(db, {

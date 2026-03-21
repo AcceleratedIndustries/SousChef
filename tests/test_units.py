@@ -1,7 +1,7 @@
 """Tests for unit normalization utilities."""
 import pytest
 
-from grecipe.units import (
+from souschef.units import (
     normalize_unit,
     can_combine,
     combine_quantities,

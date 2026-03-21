@@ -1,7 +1,7 @@
 """Recipe history model: track changes to recipes over time."""
 import json
 
-from grecipe.db.connection import dict_rows
+from souschef.db.connection import dict_rows
 
 
 def record_change(conn, recipe_id, changes, old_recipe, chat_log_id=None):

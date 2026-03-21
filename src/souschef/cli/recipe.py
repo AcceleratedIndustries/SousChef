@@ -4,9 +4,9 @@ from typing import List, Optional
 
 import typer
 
-from grecipe.db.connection import get_db
-from grecipe.cli.utils import _maybe_log
-from grecipe.models.recipe import (
+from souschef.db.connection import get_db
+from souschef.cli.utils import _maybe_log
+from souschef.models.recipe import (
     add_recipe,
     get_recipe,
     edit_recipe,
@@ -16,9 +16,9 @@ from grecipe.models.recipe import (
     rate_recipe,
     favorite_recipe,
 )
-from grecipe.models.dietary import set_dietary, get_dietary
-from grecipe.models.history import record_change
-from grecipe.models.chat import log_chat
+from souschef.models.dietary import set_dietary, get_dietary
+from souschef.models.history import record_change
+from souschef.models.chat import log_chat
 
 app = typer.Typer(help="Recipe management commands.")
 
@@ -208,8 +208,8 @@ def import_url(
     log_assistant_msg: Optional[str] = typer.Option(None, "--log-assistant-msg"),
 ):
     """Import a recipe from a URL."""
-    from grecipe.db.connection import get_db_path
-    from grecipe.scraper.url import fetch_and_scrape
+    from souschef.db.connection import get_db_path
+    from souschef.scraper.url import fetch_and_scrape
 
     db_path = get_db_path()
     images_dir = db_path.parent / "images"

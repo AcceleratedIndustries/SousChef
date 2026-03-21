@@ -1,7 +1,7 @@
 """Meal plan model: CRUD, items, and recipe suggestions."""
 from datetime import datetime, timezone
 
-from grecipe.db.connection import dict_rows
+from souschef.db.connection import dict_rows
 
 
 def _now():

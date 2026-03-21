@@ -2,13 +2,13 @@
 import json
 import pytest
 from typer.testing import CliRunner
-from grecipe.cli.main import app
+from souschef.cli.main import app
 
 runner = CliRunner()
 
 
 def test_display_render_recipe(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     runner.invoke(app, ["db", "init"])
     recipe_data = json.dumps({"title": "Tacos"})
     runner.invoke(app, ["recipe", "add", "--json", recipe_data])

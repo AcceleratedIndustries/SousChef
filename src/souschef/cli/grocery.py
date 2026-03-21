@@ -4,9 +4,9 @@ from typing import Optional
 
 import typer
 
-from grecipe.db.connection import get_db
-from grecipe.cli.utils import _maybe_log
-from grecipe.models.grocery import (
+from souschef.db.connection import get_db
+from souschef.cli.utils import _maybe_log
+from souschef.models.grocery import (
     create_list,
     get_list,
     delete_list,

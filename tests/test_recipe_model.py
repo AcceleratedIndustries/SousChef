@@ -2,7 +2,7 @@
 import json
 import pytest
 
-from grecipe.models.recipe import (
+from souschef.models.recipe import (
     add_recipe,
     get_recipe,
     edit_recipe,

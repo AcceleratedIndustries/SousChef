@@ -2,9 +2,9 @@
 
 import json
 import typer
-from grecipe.db.connection import get_db, get_db_path
-from grecipe.db.schema import init_db
-from grecipe.db.seed import seed_meal_categories
+from souschef.db.connection import get_db, get_db_path
+from souschef.db.schema import init_db
+from souschef.db.seed import seed_meal_categories
 
 app = typer.Typer(help="Database management.")
 

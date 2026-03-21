@@ -1,7 +1,7 @@
 """Tests for the meal plan model."""
 import pytest
 
-from grecipe.models.plan import (
+from souschef.models.plan import (
     create_plan,
     get_plan,
     edit_plan,
@@ -12,7 +12,7 @@ from grecipe.models.plan import (
     list_plans,
     suggest_recipes,
 )
-from grecipe.models.recipe import add_recipe
+from souschef.models.recipe import add_recipe
 
 
 SAMPLE_RECIPE = {

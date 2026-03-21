@@ -1,6 +1,6 @@
 """Tests for the chat log model."""
 import pytest
-from grecipe.models.chat import log_chat, search_chat
+from souschef.models.chat import log_chat, search_chat
 
 
 def test_log_chat(db):

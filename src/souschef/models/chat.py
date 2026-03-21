@@ -1,6 +1,6 @@
 """Chat log model: log and search chat interactions using FTS5."""
 
-from grecipe.db.connection import dict_rows
+from souschef.db.connection import dict_rows
 
 
 def log_chat(

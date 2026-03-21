@@ -8,7 +8,7 @@ import pytest
 
 def test_scrape_recipe_with_recipe_scrapers(tmp_path):
     """Test scrape_recipe with a mocked recipe_scrapers scraper object."""
-    from grecipe.scraper.url import scrape_recipe
+    from souschef.scraper.url import scrape_recipe
 
     mock_scraper = MagicMock()
     mock_scraper.title.return_value = "Chocolate Cake"
@@ -18,7 +18,7 @@ def test_scrape_recipe_with_recipe_scrapers(tmp_path):
     mock_scraper.total_time.return_value = 60
     mock_scraper.yields.return_value = "4 servings"
 
-    with patch("grecipe.scraper.url.scrape_html", return_value=mock_scraper):
+    with patch("souschef.scraper.url.scrape_html", return_value=mock_scraper):
         result = scrape_recipe("https://example.com/recipe", "<html></html>")
 
     assert result["title"] == "Chocolate Cake"
@@ -32,7 +32,7 @@ def test_scrape_recipe_with_recipe_scrapers(tmp_path):
 
 def test_download_image_success(tmp_path):
     """Test download_image with a successful HTTP response."""
-    from grecipe.scraper.url import download_image
+    from souschef.scraper.url import download_image
 
     fake_bytes = b"fake image data"
     mock_response = MagicMock()
@@ -40,7 +40,7 @@ def test_download_image_success(tmp_path):
     mock_response.content = fake_bytes
     mock_response.headers = {"content-type": "image/jpeg"}
 
-    with patch("grecipe.scraper.url.httpx.get", return_value=mock_response):
+    with patch("souschef.scraper.url.httpx.get", return_value=mock_response):
         result = download_image("https://example.com/cake.jpg", tmp_path)
 
     assert result is not None
@@ -56,9 +56,9 @@ def test_download_image_success(tmp_path):
 
 def test_download_image_failure(tmp_path):
     """Test download_image returns None when httpx raises an exception."""
-    from grecipe.scraper.url import download_image
+    from souschef.scraper.url import download_image
 
-    with patch("grecipe.scraper.url.httpx.get", side_effect=Exception("Network error")):
+    with patch("souschef.scraper.url.httpx.get", side_effect=Exception("Network error")):
         result = download_image("https://example.com/cake.jpg", tmp_path)
 
     assert result is None

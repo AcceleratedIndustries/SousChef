@@ -4,8 +4,8 @@ from typing import Optional
 
 import typer
 
-from grecipe.db.connection import get_db, get_db_path
-from grecipe.display.renderer import render_recipe, render_plan, render_grocery
+from souschef.db.connection import get_db, get_db_path
+from souschef.display.renderer import render_recipe, render_plan, render_grocery
 
 app = typer.Typer(help="HTML display rendering commands.")
 

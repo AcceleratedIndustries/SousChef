@@ -4,9 +4,9 @@ from typing import List, Optional
 
 import typer
 
-from grecipe.db.connection import get_db
-from grecipe.cli.utils import _maybe_log
-from grecipe.models.tag import add_tags, remove_tag, list_tags
+from souschef.db.connection import get_db
+from souschef.cli.utils import _maybe_log
+from souschef.models.tag import add_tags, remove_tag, list_tags
 
 app = typer.Typer(help="Tag management commands.")
 

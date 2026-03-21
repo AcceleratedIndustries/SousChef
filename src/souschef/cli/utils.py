@@ -1,6 +1,6 @@
 """Shared CLI utilities."""
 
-from grecipe.models.chat import log_chat
+from souschef.models.chat import log_chat
 
 
 def _maybe_log(conn, user_msg, assistant_msg, action_type, entity_type, entity_id=None):

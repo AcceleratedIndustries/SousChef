@@ -2,13 +2,13 @@
 import json
 import pytest
 from typer.testing import CliRunner
-from grecipe.cli.main import app
+from souschef.cli.main import app
 
 runner = CliRunner()
 
 
 def test_plan_create_and_view(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     runner.invoke(app, ["db", "init"])
     result = runner.invoke(app, ["plan", "create", "--name", "Week 1"])
     assert result.exit_code == 0, result.output
@@ -24,7 +24,7 @@ def test_plan_create_and_view(tmp_path, monkeypatch):
 
 
 def test_plan_add_item(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     runner.invoke(app, ["db", "init"])
     # Add a recipe first
     recipe_data = json.dumps({"title": "Tacos"})
@@ -43,7 +43,7 @@ def test_plan_add_item(tmp_path, monkeypatch):
 
 
 def test_plan_delete(tmp_path, monkeypatch):
-    monkeypatch.setenv("GRECIPE_DB_DIR", str(tmp_path))
+    monkeypatch.setenv("SOUSCHEF_DB_DIR", str(tmp_path))
     runner.invoke(app, ["db", "init"])
     runner.invoke(app, ["plan", "create", "--name", "To Delete"])
     result = runner.invoke(app, ["plan", "delete", "1"])

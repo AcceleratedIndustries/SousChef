@@ -1,8 +1,8 @@
 """Grocery list model: CRUD, item management, and plan-based generation."""
 import json
 
-from grecipe.db.connection import dict_rows
-from grecipe.units import (
+from souschef.db.connection import dict_rows
+from souschef.units import (
     normalize_unit,
     can_combine,
     combine_quantities,
