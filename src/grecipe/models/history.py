@@ -1,10 +1,7 @@
 """Recipe history model: track changes to recipes over time."""
 import json
 
-
-def _dict_row_factory(cursor, row):
-    """sqlite3 row factory that returns plain dicts."""
-    return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
+from grecipe.db.connection import dict_rows
 
 
 def record_change(conn, recipe_id, changes, old_recipe, chat_log_id=None):
@@ -38,16 +35,15 @@ def get_history(conn, recipe_id):
 
     JSON-decodes changed_fields and previous_values in the returned dicts.
     """
-    conn.row_factory = _dict_row_factory
-    rows = conn.execute(
-        """
-        SELECT * FROM recipe_history
-        WHERE recipe_id = ?
-        ORDER BY changed_at DESC
-        """,
-        (recipe_id,),
-    ).fetchall()
-    conn.row_factory = None
+    with dict_rows(conn) as c:
+        rows = c.execute(
+            """
+            SELECT * FROM recipe_history
+            WHERE recipe_id = ?
+            ORDER BY changed_at DESC
+            """,
+            (recipe_id,),
+        ).fetchall()
 
     for row in rows:
         if isinstance(row["changed_fields"], str):

@@ -14,9 +14,11 @@ def init():
     """Initialize the database (create tables, seed data)."""
     db_path = get_db_path()
     conn = get_db(db_path)
-    init_db(conn)
-    seed_meal_categories(conn)
-    conn.close()
+    try:
+        init_db(conn)
+        seed_meal_categories(conn)
+    finally:
+        conn.close()
     typer.echo(json.dumps({"status": "ok", "db_path": str(db_path)}))
 
 
@@ -24,9 +26,11 @@ def init():
 def stats():
     """Show database statistics."""
     conn = get_db()
-    counts = {}
-    for table in ["recipes", "tags", "meal_plans", "grocery_lists", "chat_log"]:
-        row = conn.execute(f"SELECT COUNT(*) as c FROM {table}").fetchone()
-        counts[table] = row["c"]
-    conn.close()
+    try:
+        counts = {}
+        for table in ["recipes", "tags", "meal_plans", "grocery_lists", "chat_log"]:
+            row = conn.execute(f"SELECT COUNT(*) as c FROM {table}").fetchone()
+            counts[table] = row["c"]
+    finally:
+        conn.close()
     typer.echo(json.dumps(counts))

@@ -11,4 +11,5 @@ def db(tmp_path):
     conn = get_db(db_path)
     init_db(conn)
     seed_meal_categories(conn)
-    return conn
+    yield conn
+    conn.close()

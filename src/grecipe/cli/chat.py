@@ -20,15 +20,17 @@ def log(
 ):
     """Log a chat interaction."""
     conn = get_db()
-    log_id = log_chat(
-        conn,
-        user_message=user_message,
-        assistant_response=assistant_response,
-        action_type=action,
-        entity_type=entity_type,
-        entity_id=entity_id,
-    )
-    conn.close()
+    try:
+        log_id = log_chat(
+            conn,
+            user_message=user_message,
+            assistant_response=assistant_response,
+            action_type=action,
+            entity_type=entity_type,
+            entity_id=entity_id,
+        )
+    finally:
+        conn.close()
     typer.echo(json.dumps({"id": log_id, "status": "logged"}))
 
 
@@ -36,6 +38,8 @@ def log(
 def search(query: str = typer.Argument(..., help="Search query.")):
     """Search chat logs by full-text query."""
     conn = get_db()
-    results = search_chat(conn, query)
-    conn.close()
+    try:
+        results = search_chat(conn, query)
+    finally:
+        conn.close()
     typer.echo(json.dumps(results, default=str))

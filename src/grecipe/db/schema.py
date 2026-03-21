@@ -108,6 +108,18 @@ CREATE TRIGGER IF NOT EXISTS chat_log_ai AFTER INSERT ON chat_log BEGIN
     VALUES (new.id, new.user_message, new.assistant_response);
 END;
 
+CREATE TRIGGER IF NOT EXISTS chat_log_ad AFTER DELETE ON chat_log BEGIN
+    INSERT INTO chat_log_fts(chat_log_fts, rowid, user_message, assistant_response)
+    VALUES ('delete', old.id, old.user_message, old.assistant_response);
+END;
+
+CREATE TRIGGER IF NOT EXISTS chat_log_au AFTER UPDATE ON chat_log BEGIN
+    INSERT INTO chat_log_fts(chat_log_fts, rowid, user_message, assistant_response)
+    VALUES ('delete', old.id, old.user_message, old.assistant_response);
+    INSERT INTO chat_log_fts(rowid, user_message, assistant_response)
+    VALUES (new.id, new.user_message, new.assistant_response);
+END;
+
 CREATE TABLE IF NOT EXISTS recipe_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     recipe_id INTEGER NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,

@@ -1,9 +1,6 @@
 """Chat log model: log and search chat interactions using FTS5."""
 
-
-def _dict_row_factory(cursor, row):
-    """sqlite3 row factory that returns plain dicts."""
-    return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
+from grecipe.db.connection import dict_rows
 
 
 def log_chat(
@@ -36,16 +33,15 @@ def search_chat(conn, query):
     Joins back to chat_log for full row data.
     Returns list of dicts ordered by timestamp DESC.
     """
-    conn.row_factory = _dict_row_factory
-    rows = conn.execute(
-        """
-        SELECT cl.*
-        FROM chat_log cl
-        JOIN chat_log_fts fts ON fts.rowid = cl.id
-        WHERE chat_log_fts MATCH ?
-        ORDER BY cl.timestamp DESC
-        """,
-        (query,),
-    ).fetchall()
-    conn.row_factory = None
+    with dict_rows(conn) as c:
+        rows = c.execute(
+            """
+            SELECT cl.*
+            FROM chat_log cl
+            JOIN chat_log_fts fts ON fts.rowid = cl.id
+            WHERE chat_log_fts MATCH ?
+            ORDER BY cl.timestamp DESC
+            """,
+            (query,),
+        ).fetchall()
     return rows

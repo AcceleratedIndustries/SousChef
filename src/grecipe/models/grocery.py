@@ -1,16 +1,13 @@
 """Grocery list model: CRUD, item management, and plan-based generation."""
 import json
 
+from grecipe.db.connection import dict_rows
 from grecipe.units import (
     normalize_unit,
     can_combine,
     combine_quantities,
     infer_store_section,
 )
-
-
-def _dict_row_factory(cursor, row):
-    return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
 
 
 # ---------------------------------------------------------------------------
@@ -29,27 +26,26 @@ def create_list(conn, name, meal_plan_id=None):
 
 def get_list(conn, list_id):
     """Return a grocery list dict or None."""
-    conn.row_factory = _dict_row_factory
-    row = conn.execute(
-        "SELECT * FROM grocery_lists WHERE id = ?", (list_id,)
-    ).fetchone()
-    conn.row_factory = None
+    with dict_rows(conn) as c:
+        row = c.execute(
+            "SELECT * FROM grocery_lists WHERE id = ?", (list_id,)
+        ).fetchone()
     return row
 
 
 def delete_list(conn, list_id):
-    """Delete a grocery list (cascades to items)."""
-    conn.execute("DELETE FROM grocery_lists WHERE id = ?", (list_id,))
+    """Delete a grocery list (cascades to items). Returns True if deleted, False if not found."""
+    cur = conn.execute("DELETE FROM grocery_lists WHERE id = ?", (list_id,))
     conn.commit()
+    return cur.rowcount > 0
 
 
 def list_lists(conn):
     """Return all grocery lists ordered by created_at DESC."""
-    conn.row_factory = _dict_row_factory
-    rows = conn.execute(
-        "SELECT * FROM grocery_lists ORDER BY created_at DESC"
-    ).fetchall()
-    conn.row_factory = None
+    with dict_rows(conn) as c:
+        rows = c.execute(
+            "SELECT * FROM grocery_lists ORDER BY created_at DESC"
+        ).fetchall()
     return rows
 
 
@@ -84,16 +80,15 @@ def check_item(conn, list_id, item_id, checked=True):
 
 def get_items(conn, list_id):
     """Return items for a list ordered by store_section, name."""
-    conn.row_factory = _dict_row_factory
-    rows = conn.execute(
-        """
-        SELECT * FROM grocery_items
-        WHERE grocery_list_id = ?
-        ORDER BY store_section, name
-        """,
-        (list_id,),
-    ).fetchall()
-    conn.row_factory = None
+    with dict_rows(conn) as c:
+        rows = c.execute(
+            """
+            SELECT * FROM grocery_items
+            WHERE grocery_list_id = ?
+            ORDER BY store_section, name
+            """,
+            (list_id,),
+        ).fetchall()
     return rows
 
 
@@ -146,30 +141,28 @@ def generate_from_plan(conn, plan_id, servings_multiplier=1.0):
 
     Returns the new grocery list ID.
     """
-    conn.row_factory = _dict_row_factory
-    plan = conn.execute(
-        "SELECT * FROM meal_plans WHERE id = ?", (plan_id,)
-    ).fetchone()
-    conn.row_factory = None
+    with dict_rows(conn) as c:
+        plan = c.execute(
+            "SELECT * FROM meal_plans WHERE id = ?", (plan_id,)
+        ).fetchone()
     if plan is None:
         raise ValueError(f"Meal plan {plan_id!r} not found")
 
     # Fetch all plan items with recipe info
-    conn.row_factory = _dict_row_factory
-    plan_items = conn.execute(
-        """
-        SELECT mpi.*, r.ingredients, r.servings
-        FROM meal_plan_items mpi
-        JOIN recipes r ON r.id = mpi.recipe_id
-        WHERE mpi.meal_plan_id = ?
-        """,
-        (plan_id,),
-    ).fetchall()
-    conn.row_factory = None
+    with dict_rows(conn) as c:
+        plan_items = c.execute(
+            """
+            SELECT mpi.*, r.ingredients, r.servings
+            FROM meal_plan_items mpi
+            JOIN recipes r ON r.id = mpi.recipe_id
+            WHERE mpi.meal_plan_id = ?
+            """,
+            (plan_id,),
+        ).fetchall()
 
-    # Aggregate: key → {"quantity": float, "unit": str, "section": str}
+    # Aggregate: key -> {"quantity": float, "unit": str, "section": str}
     # If a name already exists with a different incompatible unit, use alt_key.
-    aggregated = {}  # key → {"quantity": float, "unit": str | None}
+    aggregated = {}  # key -> {"quantity": float, "unit": str | None}
 
     for plan_item in plan_items:
         raw_ingredients = plan_item.get("ingredients")
@@ -224,14 +217,14 @@ def generate_from_plan(conn, plan_id, servings_multiplier=1.0):
                             aggregated[key]["quantity"] = new_qty
                             aggregated[key]["unit"] = new_unit
                     else:
-                        # Incompatible units — use alt_key
+                        # Incompatible units -- use alt_key
                         alt_key = f"{name} ({unit})" if unit else f"{name} (each)"
                         if alt_key in aggregated:
                             aggregated[alt_key]["quantity"] += quantity
                         else:
                             aggregated[alt_key] = {"quantity": quantity, "unit": unit}
                 else:
-                    # One or both quantities are None — skip combining
+                    # One or both quantities are None -- skip combining
                     pass
             else:
                 aggregated[key] = {"quantity": quantity, "unit": unit}

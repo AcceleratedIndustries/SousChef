@@ -1,5 +1,7 @@
 """Unit normalization and combination utilities for grocery aggregation."""
 
+import re
+
 UNIT_ALIASES = {
     # teaspoon
     "tsp": "teaspoon",
@@ -22,7 +24,7 @@ UNIT_ALIASES = {
     # gallon
     "gallons": "gallon",
     "gal": "gallon",
-    # ounce (fluid or weight — context will determine, treated as weight here)
+    # ounce (fluid or weight -- context will determine, treated as weight here)
     "oz": "ounce",
     "ozs": "ounce",
     "ounces": "ounce",
@@ -124,6 +126,12 @@ _SECTION_KEYWORDS = {
     ],
 }
 
+# Pre-compile regex patterns for store section inference (issue 12)
+_COMPILED_SECTIONS = {
+    section: [re.compile(rf'\b{re.escape(kw)}\b', re.IGNORECASE) for kw in keywords]
+    for section, keywords in _SECTION_KEYWORDS.items()
+}
+
 
 def normalize_unit(unit: str) -> str:
     """Lowercase, strip, look up in aliases, return canonical or original."""
@@ -179,12 +187,9 @@ def infer_store_section(ingredient_name: str) -> str:
 
     Returns one of: meat, produce, dairy, pantry, bakery, frozen, canned, other.
     """
-    import re
     lower = ingredient_name.lower()
-    for section, keywords in _SECTION_KEYWORDS.items():
-        for kw in keywords:
-            # Use word-boundary matching so "corn" doesn't match "unicorn"
-            pattern = r"\b" + re.escape(kw) + r"\b"
-            if re.search(pattern, lower):
+    for section, patterns in _COMPILED_SECTIONS.items():
+        for pattern in patterns:
+            if pattern.search(lower):
                 return section
     return "other"

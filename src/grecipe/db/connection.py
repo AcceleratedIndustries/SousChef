@@ -2,6 +2,7 @@
 
 import os
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
 
 _DEFAULT_DB_DIR = Path.home() / ".grecipe"
@@ -27,3 +28,19 @@ def get_db(db_path: Path | None = None) -> sqlite3.Connection:
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     return conn
+
+
+def dict_row_factory(cursor, row):
+    """sqlite3 row factory that returns plain dicts."""
+    return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
+
+
+@contextmanager
+def dict_rows(conn):
+    """Temporarily use dict row factory, then restore original."""
+    original = conn.row_factory
+    conn.row_factory = dict_row_factory
+    try:
+        yield conn
+    finally:
+        conn.row_factory = original

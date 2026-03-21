@@ -5,6 +5,7 @@ from typing import List, Optional
 import typer
 
 from grecipe.db.connection import get_db
+from grecipe.cli.utils import _maybe_log
 from grecipe.models.recipe import (
     add_recipe,
     get_recipe,
@@ -20,19 +21,6 @@ from grecipe.models.history import record_change
 from grecipe.models.chat import log_chat
 
 app = typer.Typer(help="Recipe management commands.")
-
-
-def _maybe_log(conn, user_msg, assistant_msg, action_type, entity_type, entity_id=None):
-    """Log a chat entry if messages are provided."""
-    if user_msg is not None or assistant_msg is not None:
-        log_chat(
-            conn,
-            user_message=user_msg,
-            assistant_response=assistant_msg,
-            action_type=action_type,
-            entity_type=entity_type,
-            entity_id=entity_id,
-        )
 
 
 @app.command()
@@ -52,9 +40,11 @@ def add(
         raise typer.Exit(code=1)
 
     conn = get_db()
-    recipe_id = add_recipe(conn, data)
-    _maybe_log(conn, log_user_msg, log_assistant_msg, "add", "recipe", recipe_id)
-    conn.close()
+    try:
+        recipe_id = add_recipe(conn, data)
+        _maybe_log(conn, log_user_msg, log_assistant_msg, "add", "recipe", recipe_id)
+    finally:
+        conn.close()
     typer.echo(json.dumps({"id": recipe_id, "status": "created"}))
 
 
@@ -62,8 +52,10 @@ def add(
 def view(recipe_id: int = typer.Argument(..., help="Recipe ID.")):
     """View a recipe by ID."""
     conn = get_db()
-    recipe = get_recipe(conn, recipe_id)
-    conn.close()
+    try:
+        recipe = get_recipe(conn, recipe_id)
+    finally:
+        conn.close()
     if recipe is None:
         typer.echo(json.dumps({"error": f"recipe {recipe_id} not found"}))
         raise typer.Exit(code=1)
@@ -80,15 +72,16 @@ def edit(
     """Edit a recipe with a merge-patch JSON object."""
     changes = json.loads(json_data)
     conn = get_db()
-    old_recipe = get_recipe(conn, recipe_id)
-    if old_recipe is None:
+    try:
+        old_recipe = get_recipe(conn, recipe_id)
+        if old_recipe is None:
+            typer.echo(json.dumps({"error": f"recipe {recipe_id} not found"}))
+            raise typer.Exit(code=1)
+        edit_recipe(conn, recipe_id, changes)
+        record_change(conn, recipe_id, changes, old_recipe)
+        _maybe_log(conn, log_user_msg, log_assistant_msg, "edit", "recipe", recipe_id)
+    finally:
         conn.close()
-        typer.echo(json.dumps({"error": f"recipe {recipe_id} not found"}))
-        raise typer.Exit(code=1)
-    edit_recipe(conn, recipe_id, changes)
-    record_change(conn, recipe_id, changes, old_recipe)
-    _maybe_log(conn, log_user_msg, log_assistant_msg, "edit", "recipe", recipe_id)
-    conn.close()
     typer.echo(json.dumps({"id": recipe_id, "status": "updated"}))
 
 
@@ -103,16 +96,18 @@ def list_cmd(
 ):
     """List recipes with optional filters."""
     conn = get_db()
-    recipes = list_recipes(
-        conn,
-        tag=tag,
-        category=category,
-        favorite=favorite,
-        limit=limit,
-        offset=offset,
-        sort=sort,
-    )
-    conn.close()
+    try:
+        recipes = list_recipes(
+            conn,
+            tag=tag,
+            category=category,
+            favorite=favorite,
+            limit=limit,
+            offset=offset,
+            sort=sort,
+        )
+    finally:
+        conn.close()
     typer.echo(json.dumps(recipes, default=str))
 
 
@@ -120,8 +115,10 @@ def list_cmd(
 def search(query: str = typer.Argument(..., help="Search query.")):
     """Search recipes by title, description, or ingredients."""
     conn = get_db()
-    results = search_recipes(conn, query)
-    conn.close()
+    try:
+        results = search_recipes(conn, query)
+    finally:
+        conn.close()
     typer.echo(json.dumps(results, default=str))
 
 
@@ -133,9 +130,14 @@ def delete(
 ):
     """Delete a recipe by ID."""
     conn = get_db()
-    _maybe_log(conn, log_user_msg, log_assistant_msg, "delete", "recipe", recipe_id)
-    delete_recipe(conn, recipe_id)
-    conn.close()
+    try:
+        _maybe_log(conn, log_user_msg, log_assistant_msg, "delete", "recipe", recipe_id)
+        deleted = delete_recipe(conn, recipe_id)
+    finally:
+        conn.close()
+    if not deleted:
+        typer.echo(json.dumps({"error": f"recipe {recipe_id} not found"}))
+        raise typer.Exit(code=1)
     typer.echo(json.dumps({"id": recipe_id, "status": "deleted"}))
 
 
@@ -148,9 +150,14 @@ def rate(
 ):
     """Rate a recipe (1-5)."""
     conn = get_db()
-    rate_recipe(conn, recipe_id, rating)
-    _maybe_log(conn, log_user_msg, log_assistant_msg, "rate", "recipe", recipe_id)
-    conn.close()
+    try:
+        rate_recipe(conn, recipe_id, rating)
+        _maybe_log(conn, log_user_msg, log_assistant_msg, "rate", "recipe", recipe_id)
+    except ValueError as e:
+        typer.echo(json.dumps({"error": str(e)}))
+        raise typer.Exit(code=1)
+    finally:
+        conn.close()
     typer.echo(json.dumps({"id": recipe_id, "rating": rating}))
 
 
@@ -162,16 +169,17 @@ def favorite(
 ):
     """Toggle favorite status for a recipe."""
     conn = get_db()
-    recipe = get_recipe(conn, recipe_id)
-    if recipe is None:
+    try:
+        recipe = get_recipe(conn, recipe_id)
+        if recipe is None:
+            typer.echo(json.dumps({"error": f"recipe {recipe_id} not found"}))
+            raise typer.Exit(code=1)
+        current = bool(recipe.get("is_favorite"))
+        new_value = not current
+        favorite_recipe(conn, recipe_id, new_value)
+        _maybe_log(conn, log_user_msg, log_assistant_msg, "favorite", "recipe", recipe_id)
+    finally:
         conn.close()
-        typer.echo(json.dumps({"error": f"recipe {recipe_id} not found"}))
-        raise typer.Exit(code=1)
-    current = bool(recipe.get("is_favorite"))
-    new_value = not current
-    favorite_recipe(conn, recipe_id, new_value)
-    _maybe_log(conn, log_user_msg, log_assistant_msg, "favorite", "recipe", recipe_id)
-    conn.close()
     typer.echo(json.dumps({"id": recipe_id, "is_favorite": new_value}))
 
 
@@ -184,10 +192,12 @@ def set_dietary_cmd(
 ):
     """Set dietary flags for a recipe."""
     conn = get_db()
-    set_dietary(conn, recipe_id, flags)
-    dietary = get_dietary(conn, recipe_id)
-    _maybe_log(conn, log_user_msg, log_assistant_msg, "set_dietary", "recipe", recipe_id)
-    conn.close()
+    try:
+        set_dietary(conn, recipe_id, flags)
+        dietary = get_dietary(conn, recipe_id)
+        _maybe_log(conn, log_user_msg, log_assistant_msg, "set_dietary", "recipe", recipe_id)
+    finally:
+        conn.close()
     typer.echo(json.dumps({"id": recipe_id, "dietary": dietary}))
 
 
@@ -219,7 +229,9 @@ def import_url(
     recipe_data = {k: v for k, v in recipe_data.items() if v is not None}
 
     conn = get_db()
-    recipe_id = add_recipe(conn, recipe_data)
-    _maybe_log(conn, log_user_msg, log_assistant_msg, "import_url", "recipe", recipe_id)
-    conn.close()
+    try:
+        recipe_id = add_recipe(conn, recipe_data)
+        _maybe_log(conn, log_user_msg, log_assistant_msg, "import_url", "recipe", recipe_id)
+    finally:
+        conn.close()
     typer.echo(json.dumps({"id": recipe_id, "title": recipe_data["title"], "status": "imported"}))

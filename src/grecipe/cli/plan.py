@@ -5,6 +5,7 @@ from typing import Optional
 import typer
 
 from grecipe.db.connection import get_db
+from grecipe.cli.utils import _maybe_log
 from grecipe.models.plan import (
     create_plan,
     get_plan,
@@ -16,21 +17,8 @@ from grecipe.models.plan import (
     list_plans,
     suggest_recipes,
 )
-from grecipe.models.chat import log_chat
 
 app = typer.Typer(help="Meal plan commands.")
-
-
-def _maybe_log(conn, user_msg, assistant_msg, action_type, entity_type, entity_id=None):
-    if user_msg is not None or assistant_msg is not None:
-        log_chat(
-            conn,
-            user_message=user_msg,
-            assistant_response=assistant_msg,
-            action_type=action_type,
-            entity_type=entity_type,
-            entity_id=entity_id,
-        )
 
 
 @app.command()
@@ -43,9 +31,11 @@ def create(
 ):
     """Create a new meal plan."""
     conn = get_db()
-    plan_id = create_plan(conn, name, start_date=start, end_date=end)
-    _maybe_log(conn, log_user_msg, log_assistant_msg, "create", "plan", plan_id)
-    conn.close()
+    try:
+        plan_id = create_plan(conn, name, start_date=start, end_date=end)
+        _maybe_log(conn, log_user_msg, log_assistant_msg, "create", "plan", plan_id)
+    finally:
+        conn.close()
     typer.echo(json.dumps({"id": plan_id, "status": "created"}))
 
 
@@ -53,13 +43,14 @@ def create(
 def view(plan_id: int = typer.Argument(..., help="Plan ID.")):
     """View a meal plan and its items."""
     conn = get_db()
-    plan = get_plan(conn, plan_id)
-    if plan is None:
+    try:
+        plan = get_plan(conn, plan_id)
+        if plan is None:
+            typer.echo(json.dumps({"error": f"plan {plan_id} not found"}))
+            raise typer.Exit(code=1)
+        items = get_plan_items(conn, plan_id)
+    finally:
         conn.close()
-        typer.echo(json.dumps({"error": f"plan {plan_id} not found"}))
-        raise typer.Exit(code=1)
-    items = get_plan_items(conn, plan_id)
-    conn.close()
     result = dict(plan)
     result["items"] = items
     typer.echo(json.dumps(result, default=str))
@@ -77,9 +68,11 @@ def add(
 ):
     """Add a recipe to a meal plan."""
     conn = get_db()
-    item_id = add_plan_item(conn, plan_id, recipe_id, date, meal, servings_override=servings)
-    _maybe_log(conn, log_user_msg, log_assistant_msg, "add_item", "plan", plan_id)
-    conn.close()
+    try:
+        item_id = add_plan_item(conn, plan_id, recipe_id, date, meal, servings_override=servings)
+        _maybe_log(conn, log_user_msg, log_assistant_msg, "add_item", "plan", plan_id)
+    finally:
+        conn.close()
     typer.echo(json.dumps({"item_id": item_id, "status": "added"}))
 
 
@@ -92,9 +85,14 @@ def remove(
 ):
     """Remove an item from a meal plan."""
     conn = get_db()
-    remove_plan_item(conn, plan_id, item_id)
-    _maybe_log(conn, log_user_msg, log_assistant_msg, "remove_item", "plan", plan_id)
-    conn.close()
+    try:
+        deleted = remove_plan_item(conn, plan_id, item_id)
+        _maybe_log(conn, log_user_msg, log_assistant_msg, "remove_item", "plan", plan_id)
+    finally:
+        conn.close()
+    if not deleted:
+        typer.echo(json.dumps({"error": f"item {item_id} not found in plan {plan_id}"}))
+        raise typer.Exit(code=1)
     typer.echo(json.dumps({"item_id": item_id, "status": "removed"}))
 
 
@@ -109,9 +107,11 @@ def edit(
 ):
     """Edit a meal plan."""
     conn = get_db()
-    edit_plan(conn, plan_id, name=name, start_date=start, end_date=end)
-    _maybe_log(conn, log_user_msg, log_assistant_msg, "edit", "plan", plan_id)
-    conn.close()
+    try:
+        edit_plan(conn, plan_id, name=name, start_date=start, end_date=end)
+        _maybe_log(conn, log_user_msg, log_assistant_msg, "edit", "plan", plan_id)
+    finally:
+        conn.close()
     typer.echo(json.dumps({"id": plan_id, "status": "updated"}))
 
 
@@ -123,9 +123,14 @@ def delete(
 ):
     """Delete a meal plan."""
     conn = get_db()
-    _maybe_log(conn, log_user_msg, log_assistant_msg, "delete", "plan", plan_id)
-    delete_plan(conn, plan_id)
-    conn.close()
+    try:
+        _maybe_log(conn, log_user_msg, log_assistant_msg, "delete", "plan", plan_id)
+        deleted = delete_plan(conn, plan_id)
+    finally:
+        conn.close()
+    if not deleted:
+        typer.echo(json.dumps({"error": f"plan {plan_id} not found"}))
+        raise typer.Exit(code=1)
     typer.echo(json.dumps({"id": plan_id, "status": "deleted"}))
 
 
@@ -135,8 +140,10 @@ def suggest(
 ):
     """Suggest recipes for planning."""
     conn = get_db()
-    recipes = suggest_recipes(conn, limit=limit)
-    conn.close()
+    try:
+        recipes = suggest_recipes(conn, limit=limit)
+    finally:
+        conn.close()
     typer.echo(json.dumps(recipes, default=str))
 
 
@@ -144,6 +151,8 @@ def suggest(
 def list_cmd():
     """List all meal plans."""
     conn = get_db()
-    plans = list_plans(conn)
-    conn.close()
+    try:
+        plans = list_plans(conn)
+    finally:
+        conn.close()
     typer.echo(json.dumps(plans, default=str))

@@ -2,6 +2,8 @@
 import json
 from datetime import datetime, timezone
 
+from grecipe.db.connection import dict_rows
+
 EDITABLE_FIELDS = {
     "title",
     "description",
@@ -37,11 +39,7 @@ def _row_to_dict(row):
 
 def add_recipe(conn, data):
     """Insert a new recipe and return the new row ID."""
-    allowed = {"title", "description", "source_url", "source_type",
-                "prep_time_minutes", "cook_time_minutes", "servings",
-                "ingredients", "instructions", "image_path", "rating",
-                "notes", "is_favorite"}
-    filtered = {k: _encode(v, k) for k, v in data.items() if k in allowed}
+    filtered = {k: _encode(v, k) for k, v in data.items() if k in EDITABLE_FIELDS}
 
     if not filtered.get("title"):
         raise ValueError("title is required")
@@ -60,17 +58,11 @@ def add_recipe(conn, data):
 
 def get_recipe(conn, recipe_id):
     """Return a single recipe as a dict, or None if not found."""
-    conn.row_factory = _dict_row_factory
-    row = conn.execute(
-        "SELECT * FROM recipes WHERE id = ?", (recipe_id,)
-    ).fetchone()
-    conn.row_factory = None
+    with dict_rows(conn) as c:
+        row = c.execute(
+            "SELECT * FROM recipes WHERE id = ?", (recipe_id,)
+        ).fetchone()
     return row
-
-
-def _dict_row_factory(cursor, row):
-    """sqlite3 row factory that returns plain dicts."""
-    return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
 
 
 def edit_recipe(conn, recipe_id, changes):
@@ -96,9 +88,10 @@ def edit_recipe(conn, recipe_id, changes):
 
 
 def delete_recipe(conn, recipe_id):
-    """Delete a recipe by ID."""
-    conn.execute("DELETE FROM recipes WHERE id = ?", (recipe_id,))
+    """Delete a recipe by ID. Returns True if deleted, False if not found."""
+    cur = conn.execute("DELETE FROM recipes WHERE id = ?", (recipe_id,))
     conn.commit()
+    return cur.rowcount > 0
 
 
 def list_recipes(
@@ -158,45 +151,48 @@ def list_recipes(
         query += " OFFSET ?"
         params.append(offset)
 
-    conn.row_factory = _dict_row_factory
-    rows = conn.execute(query, params).fetchall()
-    conn.row_factory = None
+    with dict_rows(conn) as c:
+        rows = c.execute(query, params).fetchall()
     return rows
 
 
-def search_recipes(conn, query):
+def search_recipes(conn, query, limit: int = 100):
     """LIKE search across title, description, and ingredients."""
     pattern = f"%{query}%"
-    conn.row_factory = _dict_row_factory
-    rows = conn.execute(
-        """
-        SELECT * FROM recipes
-        WHERE title LIKE ?
-           OR description LIKE ?
-           OR ingredients LIKE ?
-        ORDER BY created_at DESC
-        """,
-        (pattern, pattern, pattern),
-    ).fetchall()
-    conn.row_factory = None
+    with dict_rows(conn) as c:
+        rows = c.execute(
+            """
+            SELECT * FROM recipes
+            WHERE title LIKE ?
+               OR description LIKE ?
+               OR ingredients LIKE ?
+            ORDER BY created_at DESC
+            LIMIT ?
+            """,
+            (pattern, pattern, pattern, limit),
+        ).fetchall()
     return rows
 
 
 def rate_recipe(conn, recipe_id, rating):
-    """Set rating (1-5) for a recipe."""
+    """Set rating (1-5) for a recipe. Raises ValueError if recipe not found."""
     if rating not in range(1, 6):
         raise ValueError("rating must be between 1 and 5")
-    conn.execute(
+    cur = conn.execute(
         "UPDATE recipes SET rating = ?, updated_at = ? WHERE id = ?",
         (rating, datetime.now(timezone.utc).isoformat(), recipe_id),
     )
     conn.commit()
+    if cur.rowcount == 0:
+        raise ValueError(f"recipe {recipe_id} not found")
 
 
 def favorite_recipe(conn, recipe_id, value):
-    """Set or unset favorite status for a recipe."""
-    conn.execute(
+    """Set or unset favorite status for a recipe. Raises ValueError if not found."""
+    cur = conn.execute(
         "UPDATE recipes SET is_favorite = ?, updated_at = ? WHERE id = ?",
         (1 if value else 0, datetime.now(timezone.utc).isoformat(), recipe_id),
     )
     conn.commit()
+    if cur.rowcount == 0:
+        raise ValueError(f"recipe {recipe_id} not found")
