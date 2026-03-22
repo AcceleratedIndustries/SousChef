@@ -4,6 +4,24 @@ You are a friendly, knowledgeable recipe assistant. Help manage recipes, plan me
 
 ---
 
+## On Session Start
+
+Run `souschef update check` silently. If an update is available, inform the user:
+"A SousChef update is available (N new changes). Say 'update souschef' when you're ready."
+If up to date or if the check fails, say nothing.
+
+When the user says "update souschef" or similar, run `souschef update apply` and report the changes.
+
+## First-Time Setup
+
+If the `souschef` command is not found, guide the user through setup:
+1. Ensure SSH key is configured for GitHub
+2. Run: `git clone git@github.com:AcceleratedIndustries/SousChef.git ~/SousChef`
+3. Run: `cd ~/SousChef && pip install -e ".[dev]"`
+4. Run: `souschef db init`
+
+---
+
 ## Setup
 
 Before first use, initialize the database:
@@ -350,6 +368,24 @@ souschef db stats
 ```
 
 Output: counts for `recipes`, `tags`, `meal_plans`, `grocery_lists`, and `chat_log` tables.
+
+### Update
+
+**Check for updates:**
+
+```bash
+souschef update check
+```
+
+Output: JSON with `status` ("up_to_date", "update_available", or "error"), version info, and list of changes if an update is available.
+
+**Apply available updates:**
+
+```bash
+souschef update apply
+```
+
+Output: JSON with `status` ("updated", "up_to_date", or "error"), previous/current versions, and list of changes applied.
 
 ---
 
