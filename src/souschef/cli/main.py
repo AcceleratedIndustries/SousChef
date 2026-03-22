@@ -13,6 +13,7 @@ def register_subcommands():
     from souschef.cli.grocery import app as grocery_app
     from souschef.cli.chat import app as chat_app
     from souschef.cli.display import app as display_app
+    from souschef.cli.update import app as update_app
     app.add_typer(db_app, name="db")
     app.add_typer(recipe_app, name="recipe")
     app.add_typer(tag_app, name="tag")
@@ -20,6 +21,7 @@ def register_subcommands():
     app.add_typer(grocery_app, name="grocery")
     app.add_typer(chat_app, name="chat")
     app.add_typer(display_app, name="display")
+    app.add_typer(update_app, name="update")
 
 
 register_subcommands()
