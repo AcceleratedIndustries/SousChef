@@ -38,7 +38,7 @@ Fetches from origin and compares local HEAD against `origin/main`.
 }
 ```
 
-**Error cases:**
+**Error cases (all exit code 1):**
 - No git repo found: `{"status": "error", "error": "Not a git repository"}`
 - No network / fetch fails: `{"status": "error", "error": "Could not reach remote"}`
 - Dirty working tree: still reports update status (doesn't block check)
@@ -48,10 +48,10 @@ Fetches from origin and compares local HEAD against `origin/main`.
 Pulls latest from `origin/main` and reinstalls the package.
 
 **Steps:**
-1. `git fetch origin main`
+1. Check for dirty tracked files via `git status --porcelain`. If any, abort with error.
 2. Record current HEAD SHA
-3. `git pull origin main`
-4. `pip install -e .` (from repo root)
+3. `git pull origin main` (this fetches internally — no separate fetch needed)
+4. `sys.executable -m pip install -e .` (from repo root)
 5. Report what changed (commit messages between old HEAD and new HEAD)
 
 **Output (success):**
@@ -70,43 +70,28 @@ Pulls latest from `origin/main` and reinstalls the package.
 ```
 
 **Error cases:**
-- Dirty working tree with conflicts: `{"status": "error", "error": "Working tree has uncommitted changes"}`
-- Pull fails: `{"status": "error", "error": "Pull failed: <details>"}`
-- pip install fails: `{"status": "error", "error": "Install failed: <details>"}`
+- Dirty working tree (any modified tracked files): `{"status": "error", "error": "Working tree has uncommitted changes"}` (exit code 1)
+- Pull fails: `{"status": "error", "error": "Pull failed: <details>"}` (exit code 1)
+- pip install fails: `{"status": "error", "error": "Install failed: <details>"}` (exit code 1)
 
-### `souschef update install`
+### ~~`souschef update install`~~ — Removed
 
-First-time setup. Clones the repo and installs the package.
-
-**Steps:**
-1. Clone `git@github.com:AcceleratedIndustries/SousChef.git` to `~/SousChef`
-2. `pip install -e .` from the cloned directory
-3. Report success with install path
-
-**Output:**
-```json
-{
-  "status": "installed",
-  "path": "/Users/georgayne/SousChef",
-  "version": "abc1234"
-}
-```
-
-**Error cases:**
-- Directory already exists: `{"status": "error", "error": "Directory ~/SousChef already exists"}`
-- Clone fails (auth): `{"status": "error", "error": "Clone failed: <details>"}`
-- pip install fails: `{"status": "error", "error": "Install failed: <details>"}`
+First-time setup is a bootstrap problem: you can't run `souschef` before it's installed. The canonical first-time setup path is documented in CLAUDE.md as manual `git clone` + `pip install` steps. Claude guides Georgayne through this if `souschef` is not found.
 
 ## Repo Root Discovery
 
 The update commands need to find the git repo root. Since SousChef is installed as an editable package, resolve from the package's `__file__` path:
 
 ```python
+# In src/souschef/update.py:
 from pathlib import Path
-repo_root = Path(__file__).resolve().parent.parent.parent  # src/souschef/__init__.py → repo root
+repo_root = Path(__file__).resolve().parent.parent.parent
+# update.py → souschef/ → src/ → repo root
 ```
 
-Verify by checking that `repo_root / ".git"` exists. If not, the package wasn't installed from a git clone — report an error.
+This depth (3 parents) is correct for any file at `src/souschef/*.py`. Verify by checking that `repo_root / ".git"` exists.
+
+If `.git` is not found, the package wasn't installed from a git clone — report an error.
 
 ## CLAUDE.md Changes
 
@@ -125,14 +110,13 @@ If the `souschef` command is not found, guide the user through setup:
 3. Run: cd ~/SousChef && pip install -e ".[dev]"
 4. Run: souschef db init
 
-Or use the one-liner if souschef is somehow available:
-souschef update install
+**Note:** `souschef update install` does not exist — it's a bootstrap problem. These manual steps are the canonical first-time setup path.
 ```
 
 ## Implementation Details
 
 ### New files
-- `src/souschef/cli/update.py` — Typer app with `check`, `apply`, `install` commands
+- `src/souschef/cli/update.py` — Typer app with `check` and `apply` commands
 - `src/souschef/update.py` — core update logic (repo discovery, git operations, version comparison)
 - `tests/test_update.py` — tests for update logic
 - `tests/test_cli/test_update_cli.py` — CLI-level tests
@@ -146,13 +130,13 @@ Key git commands used:
 - `git rev-parse HEAD` — current local SHA
 - `git rev-parse origin/main` — latest remote SHA
 - `git rev-list HEAD..origin/main --count` — how many commits behind
-- `git log HEAD..origin/main --oneline` — commit messages for changelog
+- `git log HEAD..origin/main --format=%s` — commit message subjects only (no SHA prefix) for changelog
 - `git pull origin main` — apply update
-- `git clone <url> <path>` — first-time install
+- `git clone <url> <path>` — first-time install (manual, not via CLI)
 
 ### pip operations
 
-Use `subprocess.run(["pip", "install", "-e", "."], cwd=repo_root)` for installation.
+Use `subprocess.run([sys.executable, "-m", "pip", "install", "-e", "."], cwd=repo_root)` for installation. Using `sys.executable` ensures pip runs in the correct Python environment, avoiding issues where `pip` on PATH points to a different Python (common on macOS).
 
 ### Version representation
 
