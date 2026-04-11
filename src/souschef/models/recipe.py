@@ -157,19 +157,36 @@ def list_recipes(
 
 
 def search_recipes(conn, query, limit: int = 100):
-    """LIKE search across title, description, and ingredients."""
-    pattern = f"%{query}%"
+    """LIKE search across title, description, and ingredients.
+
+    Multi-word queries are split on whitespace; every term must match
+    at least one of title, description, or ingredients (AND semantics).
+    """
+    terms = query.split()
+    if not terms:
+        return []
+
+    clauses = []
+    params = []
+    for term in terms:
+        pattern = f"%{term}%"
+        clauses.append(
+            "(title LIKE ? OR description LIKE ? OR ingredients LIKE ?)"
+        )
+        params.extend([pattern, pattern, pattern])
+
+    where = " AND ".join(clauses)
+    params.append(limit)
+
     with dict_rows(conn) as c:
         rows = c.execute(
-            """
+            f"""
             SELECT * FROM recipes
-            WHERE title LIKE ?
-               OR description LIKE ?
-               OR ingredients LIKE ?
+            WHERE {where}
             ORDER BY created_at DESC
             LIMIT ?
             """,
-            (pattern, pattern, pattern, limit),
+            params,
         ).fetchall()
     return rows
 

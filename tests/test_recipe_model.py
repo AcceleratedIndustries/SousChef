@@ -127,3 +127,17 @@ def test_search_recipes(db):
     result_ids = [r["id"] for r in results]
     assert target_id in result_ids
     assert other_id not in result_ids
+
+
+def test_search_recipes_multi_word(db):
+    """Multi-word queries should match each term independently (AND)."""
+    base = {**SAMPLE_RECIPE, "description": "A recipe."}
+    both_id = add_recipe(db, {**base, "title": "Pasta with Egg"})
+    pasta_only_id = add_recipe(db, {**base, "title": "Pasta Primavera"})
+    egg_only_id = add_recipe(db, {**base, "title": "Egg Fried Rice"})
+
+    results = search_recipes(db, "pasta egg")
+    result_ids = [r["id"] for r in results]
+    assert both_id in result_ids
+    assert pasta_only_id not in result_ids
+    assert egg_only_id not in result_ids

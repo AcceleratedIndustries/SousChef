@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS recipes (
     title TEXT NOT NULL,
     description TEXT,
     source_url TEXT,
-    source_type TEXT CHECK(source_type IN ('url', 'text', 'other')),
+    source_type TEXT CHECK(source_type IN ('url', 'text', 'manual', 'other')),
     prep_time_minutes INTEGER,
     cook_time_minutes INTEGER,
     servings INTEGER,
@@ -131,6 +131,56 @@ CREATE TABLE IF NOT EXISTS recipe_history (
 """
 
 
+MIGRATIONS = [
+    # Add 'manual' to recipes.source_type CHECK constraint.
+    # SQLite doesn't support ALTER CHECK, so we recreate the table.
+    """
+    PRAGMA foreign_keys = OFF;
+
+    CREATE TABLE IF NOT EXISTS _recipes_new (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        source_url TEXT,
+        source_type TEXT CHECK(source_type IN ('url', 'text', 'manual', 'other')),
+        prep_time_minutes INTEGER,
+        cook_time_minutes INTEGER,
+        servings INTEGER,
+        ingredients JSON,
+        instructions JSON,
+        image_path TEXT,
+        rating INTEGER CHECK(rating BETWEEN 1 AND 5),
+        notes TEXT,
+        is_favorite BOOLEAN DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    INSERT OR IGNORE INTO _recipes_new
+        SELECT * FROM recipes;
+
+    DROP TABLE IF EXISTS recipes;
+    ALTER TABLE _recipes_new RENAME TO recipes;
+
+    PRAGMA foreign_keys = ON;
+    """,
+]
+
+
 def init_db(conn):
-    """Create all tables."""
+    """Create all tables and run migrations for existing DBs."""
     conn.executescript(SCHEMA_SQL)
+    _run_migrations(conn)
+
+
+def _run_migrations(conn):
+    """Apply idempotent migrations to bring existing DBs up to date."""
+    # Check if migration is needed: inspect the CHECK constraint on source_type
+    row = conn.execute(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='recipes'"
+    ).fetchone()
+    if row is None:
+        return
+    ddl = row[0] if isinstance(row, tuple) else row["sql"]
+    if "'manual'" not in ddl:
+        conn.executescript(MIGRATIONS[0])
