@@ -1,5 +1,5 @@
 {
-  "manifest_version": "0.2",
+  "manifest_version": "0.3",
   "name": "souschef",
   "display_name": "SousChef",
   "version": "0.2.0",
@@ -10,18 +10,21 @@
     "url": "https://github.com/AcceleratedIndustries/SousChef"
   },
   "homepage": "https://github.com/AcceleratedIndustries/SousChef",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AcceleratedIndustries/SousChef"
+  },
   "license": "MIT",
   "server": {
-    "type": "python",
-    "entry_point": "src/souschef/mcp/server.py",
-    "mcp_config": {
-      "command": "python",
-      "args": ["-m", "souschef.mcp.server"]
-    }
+    "type": "uv",
+    "entry_point": "src/souschef/mcp/server.py"
   },
-  "skills": [
-    {
-      "path": "skills/souschef/SKILL.md"
+  "tools_generated": true,
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "python": ">=3.11"
     }
-  ]
+  }
 }
