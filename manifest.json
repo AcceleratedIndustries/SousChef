@@ -16,8 +16,17 @@
   },
   "license": "MIT",
   "server": {
-    "type": "uv",
-    "entry_point": "src/souschef/mcp/server.py"
+    "type": "python",
+    "entry_point": "src/souschef/mcp/server.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${__dirname}",
+        "src/souschef/mcp/server.py"
+      ]
+    }
   },
   "tools_generated": true,
   "compatibility": {
