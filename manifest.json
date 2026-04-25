@@ -21,7 +21,7 @@
   },
   "tools_generated": true,
   "compatibility": {
-    "claude_desktop": ">=0.10.0",
+    "claude_desktop": ">=1.3883.0",
     "platforms": ["darwin", "win32", "linux"],
     "runtimes": {
       "python": ">=3.11"
