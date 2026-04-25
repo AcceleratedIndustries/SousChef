@@ -12,5 +12,8 @@ build/
 *.egg-info/
 tests/
 docs/
+skills/
+scripts/
 .claude/
+.mcpbignore
 node_modules/
