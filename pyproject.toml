@@ -13,6 +13,7 @@ dependencies = [
     "beautifulsoup4>=4.12",
     "recipe-scrapers>=15.0",
     "jinja2>=3.1",
+    "mcp>=1.0",
 ]
 
 [project.optional-dependencies]
@@ -23,6 +24,7 @@ dev = [
 
 [project.scripts]
 souschef = "souschef.cli.main:app"
+souschef-mcp = "souschef.mcp.server:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/souschef"]

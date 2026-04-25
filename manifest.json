@@ -1,0 +1,30 @@
+{
+  "manifest_version": "0.3",
+  "name": "souschef",
+  "display_name": "SousChef",
+  "version": "0.2.0",
+  "description": "Recipe management, meal planning, and grocery lists — all via Claude.",
+  "long_description": "Save recipes by dictating them or importing from URLs, plan meals for the week, and auto-generate shopping lists. Data lives locally in ~/.souschef/souschef.db.",
+  "author": {
+    "name": "Accelerated Industries",
+    "url": "https://github.com/AcceleratedIndustries/SousChef"
+  },
+  "homepage": "https://github.com/AcceleratedIndustries/SousChef",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AcceleratedIndustries/SousChef"
+  },
+  "license": "MIT",
+  "server": {
+    "type": "uv",
+    "entry_point": "src/souschef/mcp/server.py"
+  },
+  "tools_generated": true,
+  "compatibility": {
+    "claude_desktop": ">=1.3883.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "python": ">=3.11"
+    }
+  }
+}
